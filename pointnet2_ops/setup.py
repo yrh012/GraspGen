@@ -18,14 +18,15 @@ _ext_sources = (
 )
 
 requirements = ["torch>=1.4"]
+
 exec(open(osp.join("pointnet2_ops", "_version.py")).read())
 
 ext_modules = []
 cmdclass = {}
 
-skip_cuda = os.environ.get("POINTNET2_SKIP_CUDA", "0") == "1"
+os.environ["TORCH_CUDA_ARCH_LIST"] = "8.6"
 
-if (not skip_cuda) and CUDA_HOME is not None:
+if CUDA_HOME is not None:
     ext_modules.append(
         CUDAExtension(
             name="pointnet2_ops._ext",
@@ -33,7 +34,11 @@ if (not skip_cuda) and CUDA_HOME is not None:
             include_dirs=[osp.join(this_dir, _ext_src_root, "include")],
             extra_compile_args={
                 "cxx": ["-O3"],
-                "nvcc": ["-O3", "-Xfatbin", "-compress-all"],
+                "nvcc": [
+                    "-O3",
+                    "-Xfatbin",
+                    "-compress-all",
+                ],
             },
         )
     )
