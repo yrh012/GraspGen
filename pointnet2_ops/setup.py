@@ -1,48 +1,21 @@
 import glob
-import os
 import os.path as osp
 
 from setuptools import find_packages, setup
-from torch.utils.cpp_extension import (
-    BuildExtension,
-    CUDAExtension,
-    CUDA_HOME,
-)
+from torch.utils.cpp_extension import BuildExtension, CUDAExtension
+import os
 
 this_dir = osp.dirname(osp.abspath(__file__))
 _ext_src_root = osp.join("pointnet2_ops", "_ext-src")
-
-_ext_sources = (
-    glob.glob(osp.join(_ext_src_root, "src", "*.cpp")) +
-    glob.glob(osp.join(_ext_src_root, "src", "*.cu"))
+_ext_sources = glob.glob(osp.join(_ext_src_root, "src", "*.cpp")) + glob.glob(
+    osp.join(_ext_src_root, "src", "*.cu")
 )
 
 requirements = ["torch>=1.4"]
+os.environ["TORCH_CUDA_ARCH_LIST"] = "7.0 7.5 8.0 8.6 8.9"
+os.environ["CUDA_HOME"] = "/usr/local/cuda"
 
 exec(open(osp.join("pointnet2_ops", "_version.py")).read())
-
-ext_modules = []
-cmdclass = {}
-
-os.environ["TORCH_CUDA_ARCH_LIST"] = "8.6"
-
-if CUDA_HOME is not None:
-    ext_modules.append(
-        CUDAExtension(
-            name="pointnet2_ops._ext",
-            sources=_ext_sources,
-            include_dirs=[osp.join(this_dir, _ext_src_root, "include")],
-            extra_compile_args={
-                "cxx": ["-O3"],
-                "nvcc": [
-                    "-O3",
-                    "-Xfatbin",
-                    "-compress-all",
-                ],
-            },
-        )
-    )
-    cmdclass["build_ext"] = BuildExtension
 
 setup(
     name="pointnet2_ops",
@@ -50,7 +23,17 @@ setup(
     author="Erik Wijmans",
     packages=find_packages(),
     install_requires=requirements,
-    ext_modules=ext_modules,
-    cmdclass=cmdclass,
+    ext_modules=[
+        CUDAExtension(
+            name="pointnet2_ops._ext",
+            sources=_ext_sources,
+            extra_compile_args={
+                "cxx": ["-O3"],
+                "nvcc": ["-O3", "-Xfatbin", "-compress-all"],
+            },
+            include_dirs=[osp.join(this_dir, _ext_src_root, "include")],
+        )
+    ],
+    cmdclass={"build_ext": BuildExtension},
     include_package_data=True,
 )
