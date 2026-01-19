@@ -24,7 +24,7 @@ _ext = load(
     sources=_ext_sources,
     extra_include_paths=[osp.join(_ext_src_root, "include")],
     extra_cflags=["-O3"],
-    extra_cuda_cflags=["-O3", "-Xfatbin", "-compress-all"],
+    extra_cuda_cflags=["-O3", "-Xfatbin", "-compress-all", "-gencode=arch=compute_86,code=sm_86"],
     with_cuda=True,
 )
 
