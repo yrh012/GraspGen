@@ -1,6 +1,6 @@
 import glob
 import os.path as osp
-
+import os
 from setuptools import find_packages, setup
 from torch.utils.cpp_extension import BuildExtension, CUDAExtension
 
@@ -11,6 +11,7 @@ _ext_sources = glob.glob(osp.join(_ext_src_root, "src", "*.cpp")) + glob.glob(
 )
 
 requirements = ["torch>=1.4"]
+os.environ["TORCH_CUDA_ARCH_LIST"] = "8.6"
 
 exec(open(osp.join("pointnet2_ops", "_version.py")).read())
 
